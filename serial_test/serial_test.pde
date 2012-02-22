@@ -2,7 +2,7 @@ int val = 0;                    //value of individual accelerometer or gyroscope
 unsigned long timer=0;          //timer
 unsigned long  delta_t;         //delta time or how long it takes to execute data acquisition 
 
-void setup()
+void setup()                    //meanless comment
 
 {
   analogReference(EXTERNAL);     //using external analog ref of 3.3V for ADC scaling
