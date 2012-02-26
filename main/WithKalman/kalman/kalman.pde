@@ -1,6 +1,6 @@
 /*
  * old signature
-float* F, // n*n
+                  float* F, // n*n
                   float* F_t, // t
                   float* B, // n*p
                   float* u, // p*1   -> can change when done using
@@ -31,10 +31,10 @@ S^k-1 l = z
 
 
 //state variables
-x_1_1[4] = {0.0, 0.0, 0.0, 0.0}
-x_2_1[4] = {0.0, 0.0, 0.0, 0.0}
-x_1_2[4] = {0.0, 0.0, 0.0, 0.0}
-x_2_2[4] = {0.0, 0.0, 0.0, 0.0}
+float x_1_1[n] = {0.0, 0.0, 0.0, 0.0};
+float x_2_1[n] = {0.0, 0.0, 0.0, 0.0};
+float x_1_2[n] = {0.0, 0.0, 0.0, 0.0};
+float x_2_2[n] = {0.0, 0.0, 0.0, 0.0};
 
 
 //covariance matrices
@@ -44,7 +44,7 @@ float P_1_1[n][n]={
 ,{
     0,1,0,0  }
 ,{
-    0,0,1,0  }
+    0,0,1,0  }*
 ,{
     0,0,0,1  }
 };
@@ -99,6 +99,17 @@ float F[n][n]={
     -L_4 * k_1, -L_4 * k_2, L_2 - L_4 * k_3, -L_4 * k_4  }
 };
 
+float F_t[n][n]={
+{
+    0,L_3 * k_1,0,-L_4 * k_1  }
+,{
+    1,-L_3 * k_2, 0,-L_4 * k_2   }
+,{
+    0,L_1 - L_3 * k_3,0,L_2 - L_4 * k_3  }
+,{
+    0, -L_3 * k_4, 1, -L_4 * k_4  }
+};
+
 float B[n][p]={
 {
     0  }
@@ -141,6 +152,28 @@ float H2[m][n]={
     0,0,0,0  }
 };
 
+float H_t_1[n][m]={
+{
+    0,0,0,0,0,0  }
+,{
+    0,0,0,0,0,0  }
+,{
+    0,0,0,0,0,0  }
+,{
+    0,0,0,0,0,0  }
+};
+
+
+float H_t_2[n][m]={
+{
+    0,0,0,0,0,0  }
+,{
+    0,0,0,0,0,0  }
+,{
+    0,0,0,0,0,0  }
+,{
+    0,0,0,0,0,0  }
+};
 
 float Q[n][n]={
 {
@@ -188,16 +221,40 @@ float tempm [m][m];
 float tempm2 [m][m];
 
 if(j == 0){
+        float* H = H_1;
+        float* H_t = H_t_1;
     if(k == 0){
         float* X_k_1 = x_1_1;
         float* X_k = x_1_2;
+        float* P_k_l = P_1_1;
+        float* P_k = P_1_2;
     }
     else
     {
         float* X_k_1 = x_1_2;
         float* X_k = x_1_1;
+        float* P_k_l = P_1_2;
+        float* P_k = P_1_1;
     }
 }
+else{
+        float* H = H_2;
+        float* H_k = H_t_2;
+    if(k == 0){
+        float* X_k_1 = x_2_1;
+        float* X_k = x_2_2;
+        float* P_k_l = P_2_1;
+        float* P_k = P_2_2;
+    }
+    else
+    {
+        float* X_k_1 = x_2_2;
+        float* X_k = x_2_1;
+        float* P_k_l = P_2_2;
+        float* P_k = P_2_1;
+    }
+    }
+    
 Serial.println("Beginning");
 // predict
 // predicted state estimate
