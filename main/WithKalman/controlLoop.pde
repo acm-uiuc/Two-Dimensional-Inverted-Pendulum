@@ -1,3 +1,88 @@
+
+float u = 0.0;
+signed short int dir = 0.0;
+
+void StateSpaceControl()
+{
+    //multiply the k vector with the x vector to find control effort
+    if(j == 0){
+        if(k == 0){
+            math.MatrixMult((float*)x_1_1, (float*)k, 1, n, 1, (float*)u); 
+        }
+        else{
+            math.MatrixMult((float*)x_1_2, (float*)k, 1, n, 1, (float*)u); 
+        }
+    }
+    else{
+        if(k == 0){
+            math.MatrixMult((float*)x_2_1, (float*)k, 1, n, 1, (float*)u); 
+        }
+        else{
+            math.MatrixMult((float*)x_2_2, (float*)k, 1, n, 1, (float*)u); 
+        }
+    }
+  
+  // determine motor direction
+  if (u >= 0) {
+    dir = 1;
+  }else{
+    dir = -1;
+  }
+  // Saturate output if greater than the max allowed
+  u = abs(u);
+  if (u > max_output) {
+    u = max_output;  
+  }
+  
+}
+
+// Actuate the motors based on u
+// u is the result of StateSpaceControl()
+void Actuate(void) {
+  // Motor1
+  if (j == 0) {
+    if (dir == -1) {
+      // actuate clockwise
+      u = map(u, 0, max_output, MOTOR_CW_LOW, MOTOR_CW_HIGH);
+      
+      Motor1.write(u);
+    }
+    else if (dir == 1) {
+      // actuate counter clockwise
+      u = map(u, 0, max_output, MOTOR_CCW_HIGH, MOTOR_CCW_LOW);
+      
+      Motor1.write(u);	
+    }	
+    if(millis()-motortime[j]>250){
+      Serial.println(out[j]); 
+      motortime[j]=millis();
+    }
+  }
+  // Motor 2
+  else if (j == 1) {
+    if (dir == -1) {
+      // actuate clockwise
+      u = map(u, 0, max_output, MOTOR_CW_LOW, MOTOR_CW_HIGH);
+     
+      Motor2.write(u);
+    }
+    else if (dir == 1) {
+      // actuate counter clockwise
+      u = map(u, 0, max_output, MOTOR_CCW_HIGH, MOTOR_CCW_LOW);
+      
+      Motor2.write(u);
+    }
+    if(millis()-motortime[j]>250){
+      Serial.println(out[j]); 
+      motortime[j]=millis();
+    }	 	
+  }	
+}
+
+
+
+
+
 // PID controller routine
 void PID()
 {
@@ -52,54 +137,4 @@ void PID()
     err[j][i] = err[j][i - 1];
   }
   err[j][0] = 0;
-}
-// Actuate the motors based on out[]
-// out[] is the result of PID()
-void Actuate(void) {
-  // Motor1
-  if (j == 0) {
-    if (dir[j] == -1) {
-      // actuate clockwise
-     //out[j] = pow(out[j],2);
-     // if (out[j] > max_output) { out[j] = max_output; }
-      out[j] = map(out[j], 0, max_output, MOTOR_CW_LOW, MOTOR_CW_HIGH);
-      
-      Motor1.write(out[j]);
-    }
-    else if (dir[j] == 1) {
-      // actuate counter clockwise
-   //   out[j] = pow(out[j],2);
-     // if (out[j] > max_output) { out[j] = max_output; }
-      out[j] = map(out[j], 0, max_output, MOTOR_CCW_HIGH, MOTOR_CCW_LOW);
-      
-      Motor1.write(out[j]);	
-    }	
-    if(millis()-motortime[j]>250){
-      Serial.println(out[j]); 
-      motortime[j]=millis();
-    }
-  }
-  // Motor 2
-  else if (j == 1) {
-    if (dir[j] == -1) {
-      // actuate clockwise
-   //    out[j] = pow(out[j],2);
-     //  if (out[j] > max_output) { out[j] = max_output; }
-      out[j] = map(out[j], 0, max_output, MOTOR_CW_LOW, MOTOR_CW_HIGH);
-     
-      Motor2.write(out[j]);
-    }
-    else if (dir[j] == 1) {
-      // actuate counter clockwise
-    //  out[j] = pow(out[j],2);
-   //   if (out[j] > max_output) { out[j] = max_output; }
-      out[j] = map(out[j], 0, max_output, MOTOR_CCW_HIGH, MOTOR_CCW_LOW);
-      
-      Motor2.write(out[j]);
-    }
-    if(millis()-motortime[j]>250){
-      Serial.println(out[j]); 
-      motortime[j]=millis();
-    }	 	
-  }	
 }

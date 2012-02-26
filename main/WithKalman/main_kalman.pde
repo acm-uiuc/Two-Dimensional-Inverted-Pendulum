@@ -1,19 +1,22 @@
 // Released under Creative Commons License
 // This code reads gyroscope and accelerometer data from Sparkfun's Razor 6 DOF board
-// and process it with Direction Cosine Matrix algorithm (DCM)
+// and processes it using a Kalman Filter algorithm
 //
+// A lot of code taken from:
 // DCM algorithm originally developed by Bill P. and Paul B, in part based on Mahony's work
 // Code was ported to ArduIMU by: 
 // Code by Jordi Munoz and William Premerlani, Supported by Chris Anderson and Nathan Sindle (SparkFun).
 // Version 1.3 (of ArduIMU) updated by Doug Weibel to correct coordinate system, correct pitch/roll drift cancellation, correct yaw drift cancellation and fix minor gps bug.
 //
-// This code is DCM algorithm adopted for use with Razor board
-// code is slightly modified, mainly it does not use innteruprs (in future - I just wanted to make sure it works first)
-// Also uncomment portion of the code in the main loop if you want to use GPS code
+// We no longer use DCM but we use a lot of the same code from their implementation
+//
 // Connection pinout diagram at
 // http://voidbot.net/razor-6dof.html
 //
 // - by automatik
+//
+// Kalman Filter and PID code by:
+// UIUC Association for Computing Machinery (ACM) Special Interest Group for Robotics (SIGBOT), 2010-2012
 
 #include <Servo.h> 
 
@@ -34,7 +37,7 @@
 
 /* Matrix sizes */
 #define n 4 //state size
-#define p 2 //input size
+#define p 1 //input size
 #define m 6 //sensor size
 
 
@@ -62,19 +65,10 @@
 //#define kp 1.5
 #define setpoint 0
 
-float ki = 0;
-float kp = 1.5;
-float kd = .5;
-
-float roll;
-float pitch;
-float yaw;
-
 Servo Motor1;
 Servo Motor2;
 
 void Actuate(void);
-void PID(void);
 void MotorTest(void);
 
 #define joints 2            //joints refers to number of actuators
@@ -82,29 +76,27 @@ void MotorTest(void);
 
 // j = 0 -> Motor 1
 // j = 1 -> Motor 2
+// k = 0 -> suffix _2 is the previous state for states
+// k = 1 -> suffix _1 is the previous state for states
 unsigned short int j;
+unsigned short int k;
 
 // Motor Directions
-signed short int dir[2];
+//signed short int dir[2];
 float dangle[2];
 // PID variables for each Motor
 float P[joints], I[joints], D[joints];
 float err[joints][error_readings], out[joints], sum[joints];
 unsigned int max_output = 200;
 
-// PID limits
-int sum_max = 10000;
-int sum_min = -10000;
-int D_max = 300;
-int D_min = -300;
-int err_max = 10000; 
-int err_min = -10000;
 
 // loop counter
 int loopcount = 0;
 
 //Sensor: GYROX, GYROY, GYROZ, ACCELX, ACCELY, ACCELZ
 float SENSOR_SIGN[]={1,-1,1,1,-1,1}; //{1,1,-1,1,-1,1}Used to change the polarity of the sensors{-1,1,-1,-1,-1,1}
+int SensorData[6]; //array that store the 6 ADC filtered data
+int SensorData_Offset[6]; //Array that stores the Offset of the gyros
 
 float printtime;
 float motortime[2];
@@ -112,18 +104,9 @@ float motortime[2];
 int read6, read7, read8, read9;
 
 int long timer_read = 0;
-int long timer=0; //general porpuse timer 
+int long timer=0; //general purpose timer 
 int long timer24=0; //Second timer used to print values 
-int AN[6]; //array that store the 6 ADC filtered data
-int AN_OFFSET[6]; //Array that stores the Offset of the gyros
-int EX[6]; //General porpuse array to send information
-
-float Accel_Vector[3]= {0,0,0}; //Store the acceleration in a vector
-float Gyro_Vector[3]= {0,0,0};//Store the gyros rutn rate in a vector
-float Omega_Vector[3]= {0,0,0}; //Corrected Gyro_Vector data
-float Omega_P[3]= {0,0,0};//Omega Proportional correction
-float Omega_I[3]= {0,0,0};//Omega Integrator
-float Omega[3]= {0,0,0};
+int EX[6]; //General purpose array to send information
 
 float errorRollPitch[3]= {0,0,0}; 
 float errorYaw[3]= {0,0,0};
@@ -133,48 +116,11 @@ float COGY=1; //Course overground Y axis
 
 unsigned int counter=0;
 
-float DCM_Matrix[3][3]= {
-  {
-    1,0,0  }
-  ,{
-    0,1,0  }
-  ,{
-    0,0,1  }
-}; 
-float Update_Matrix[3][3]={{0,1,2},{3,4,5},{6,7,8}}; //Gyros here
-
-
-float Temporary_Matrix[3][3]={
-  {
-    0,0,0  }
-  ,{
-    0,0,0  }
-  ,{
-    0,0,0  }
-};
- 
-//GPS 
-
-//GPS stuff please read SiRF-Binary-Protocol-Reference-Manual page 87 for more information
-union long_union {
-	int32_t dword;
-	uint8_t  byte[4];
-} longUnion;
 
 union int_union {
 	int16_t word;
 	uint8_t  byte[2];
 } intUnion;
-
-/*Flight GPS variables*/
-int gpsFix=1; //This variable store the status of the GPS
-float lat=0; // store the Latitude from the gps
-float lon=0;// Store guess what?
-float alt_MSL=0; //This is the alt.
-float ground_speed=0;// This is the velocity your "plane" is traveling in meters for second, 1Meters/Second= 3.6Km/H = 1.944 knots
-float ground_course=90;//This is the runaway direction of you "plane" in degrees
-float climb_rate=0; //This is the velocity you plane will impact the ground (in case of being negative) in meters for seconds
-char data_update_event=0; 
 
 //uBlox Checksum
 byte ck_a=0;
@@ -210,10 +156,10 @@ void setup()
 
   for(int y=0; y<=5; y++)
   {
-    AN_OFFSET[y]=AN[y];
-    Serial.println((int)AN_OFFSET[y]);
+    SensorData_Offset[y]=SensorData[y];
+    Serial.println((int)SensorData_Offset[y]);
   }
-    AN_OFFSET[5]=AN[5]+GRAVITY;
+    SensorData_Offset[5]=SensorData[5]+GRAVITY;
     printtime = millis();
     motortime[0]=millis();
     motortime[1]=millis();
@@ -241,9 +187,9 @@ void loop() //Main Loop
   {
     timer=millis();
     read_adc_raw(); //ADC Stuff
-    Matrix_update();
-    Normalize();
-    roll_pitch_drift();
+    //Matrix_update();
+    //Normalize();
+    //roll_pitch_drift();
     //printdata();
   }
   /*
@@ -288,15 +234,18 @@ void loop() //Main Loop
 
   // actuate y-axis
   j = 0;
-  err[j][0] = setpoint - pitch*10;
-  PID();
+  KalmanFilter();
+  StateSpaceControl();
   Actuate();
   
   // actuate x-axis
   j = 1;
-  err[j][0] = setpoint - roll*10;  
-  PID();
+  KalmanFilter();
+  StateSpaceControl();
   Actuate();
+
+  //update which state stores the current state/covariance
+  k = (k + 1) % 2;
 }
 
 
@@ -308,7 +257,7 @@ void printgains(void) {
   Serial.print(kd);
   Serial.print("   out = ");
   Serial.print(out[0]);
-    Serial.print("   out = ");
+  Serial.print("   out = ");
   Serial.println(out[1]);
   
   /*

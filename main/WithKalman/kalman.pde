@@ -83,9 +83,10 @@ float P_2_2[n][n]={
 };
 
 //filter tuning parameters
-float L_1 = 0.0, L_2 = 0.0, L_3 = 0.0, L_4 = 0.0;
+float L_1 = 1.0, L_2 = 1.0, L_3 = 1.0, L_4 = 1.0;
+float L_5 = 1.0, L_6 = 1.0;
 //control parameters
-float k_1 = 0.0, k_2 = 0.0, k_3 = 0.0, k_4 = 0.0;
+float k_1 = 1.0, k_2 = 1.0, k_3 = 1.0, k_4 = 1.0;
 
 //kalman filter settings
 float F[n][n]={
@@ -125,7 +126,7 @@ float H1[m][n]={
 {
     0,0,0,0  }
 ,{
-    0,0,0,0  }
+    0,L_5,0,-L_5  }
 ,{
     0,0,0,0  }
 ,{
@@ -133,13 +134,13 @@ float H1[m][n]={
 ,{
     0,0,0,0  }
 ,{
-    0,0,0,0  }
+    0,0,g,0  }
 };
 
 
 float H2[m][n]={
 {
-    0,0,0,0  }
+    0,L_6,0,-L_6  }
 ,{
     0,0,0,0  }
 ,{
@@ -149,18 +150,18 @@ float H2[m][n]={
 ,{
     0,0,0,0  }
 ,{
-    0,0,0,0  }
+    0,0,g,0  }
 };
 
 float H_t_1[n][m]={
 {
     0,0,0,0,0,0  }
 ,{
-    0,0,0,0,0,0  }
+    0,L_5,0,0,0,0  }
 ,{
-    0,0,0,0,0,0  }
+    0,0,0,0,0,g  }
 ,{
-    0,0,0,0,0,0  }
+    0,-L_5,0,0,0,0  }
 };
 
 
@@ -168,11 +169,11 @@ float H_t_2[n][m]={
 {
     0,0,0,0,0,0  }
 ,{
-    0,0,0,0,0,0  }
+    L_6,0,0,0,0,0  }
 ,{
-    0,0,0,0,0,0  }
+    0,0,0,0,0,g  }
 ,{
-    0,0,0,0,0,0  }
+    -L_6,0,0,0,0,0  }
 };
 
 float Q[n][n]={
@@ -259,8 +260,9 @@ Serial.println("Beginning");
 // predict
 // predicted state estimate
 math.MatrixMult((float*)F, (float*)X_k_1, n, n, 1, (float*)temp1);
-math.MatrixMult((float*)B, (float*)u, n, p, 1, (float*)X_k_1);
-math.MatrixAdd((float*)temp1, (float*)X_k_1, n, 1, (float*)X_k_1);
+//math.MatrixMult((float*)B, (float*)u, n, p, 1, (float*)X_k_1);
+math.MatrixCopy((float*)temp1, n, 1, (float*)X_k_1);
+//math.MatrixAdd((float*)temp1, (float*)X_k_1, n, 1, (float*)X_k_1);
 Serial.println("Estimate");
 // predicted estimate covariance
 math.MatrixMult((float*)F, (float*)P_k_1, n, n, n, (float*)temp2);

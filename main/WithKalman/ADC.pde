@@ -1,17 +1,17 @@
 void read_adc_raw(void)
 {
-     AN[0]= ((Anal_Read(3)*.9)+(AN[0]*.1)); // Gx     Anal means Analog.. 
-     AN[1]= ((Anal_Read(4)*.9)+(AN[1]*.1)); // Gy     Maps sensors to correct order 
-     AN[2]= ((Anal_Read(5)*.9)+(AN[2]*.1)); // Gz     Very weak low pass filter
-     AN[3]= ((Anal_Read(0)*.9)+(AN[3]*.1)); // Ax
-     AN[4]= ((Anal_Read(1)*.9)+(AN[4]*.1)); // Ay
-     AN[5]= ((Anal_Read(2)*.9)+(AN[5]*.1)); // Az
+     SensorData[0]= analogRead(3); // Gx     Anal means Analog.. 
+     SensorData[1]= analogRead(4); // Gy     Maps sensors to correct order 
+     SensorData[2]= analogRead(5); // Gz     No longer Very weak low pass filter
+     SensorData[3]= analogRead(0); // Ax     there used to be .9 weight on new data 
+     SensorData[4]= analogRead(1); // Ay     and .1 weight on the previous data
+     SensorData[5]= analogRead(2); // Az      
 
 }
 
 int read_adc(int select)
 {
-  return (AN[select]-AN_OFFSET[select])*SENSOR_SIGN[select];
+  return (SensorData[select]-SensorData_Offset[select])*SENSOR_SIGN[select];
 }
 
 void printdata(void)//ToDeg(x)
@@ -87,11 +87,6 @@ long convert_to_dec(float x)
 /////
 
 
-//
-int Anal_Read(int pin)
-{
-  return analogRead(pin);
-}
 //
 //void Analog_Reference(uint8_t mode)
 //{
