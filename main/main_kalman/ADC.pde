@@ -1,12 +1,20 @@
 void read_adc_raw(void)
 {
-     SensorData[0]= analogRead(3); // Gx     Anal means Analog.. 
+     SensorData[0]= analogRead(3); // Gx     
      SensorData[1]= analogRead(4); // Gy     Maps sensors to correct order 
      SensorData[2]= analogRead(5); // Gz     No longer Very weak low pass filter
      SensorData[3]= analogRead(0); // Ax     there used to be .9 weight on new data 
      SensorData[4]= analogRead(1); // Ay     and .1 weight on the previous data
      SensorData[5]= analogRead(2); // Az      
 
+}
+
+void read_adc_offset(void)
+{
+    int i = 0;
+    for(i = 0; i < 6; i++){
+        ProcessedSensorData[i] = (SensorData[i] - SensorData_Offset[i]) * SENSOR_SIGN[i];
+    }
 }
 
 int read_adc(int select)

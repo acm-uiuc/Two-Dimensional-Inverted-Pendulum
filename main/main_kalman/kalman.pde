@@ -25,16 +25,8 @@ x_k = x_k1 + Pkk1 * Htk * Sk^-1 * z
 S^k-1 l = z
 */
 
-#define n 4
-#define p 1
-#define m 6 // h m, n;  r 
 
 
-//state variables
-float x_1_1[n] = {0.0, 0.0, 0.0, 0.0};
-float x_2_1[n] = {0.0, 0.0, 0.0, 0.0};
-float x_1_2[n] = {0.0, 0.0, 0.0, 0.0};
-float x_2_2[n] = {0.0, 0.0, 0.0, 0.0};
 
 
 //covariance matrices
@@ -82,11 +74,6 @@ float P_2_2[n][n]={
     0,0,0,1  }
 };
 
-//filter tuning parameters
-float L_1 = 1.0, L_2 = 1.0, L_3 = 1.0, L_4 = 1.0;
-float L_5 = 1.0, L_6 = 1.0;
-//control parameters
-float k_1 = 1.0, k_2 = 1.0, k_3 = 1.0, k_4 = 1.0;
 
 //kalman filter settings
 float F[n][n]={
@@ -134,7 +121,7 @@ float H1[m][n]={
 ,{
     0,0,0,0  }
 ,{
-    0,0,g,0  }
+    0,0,GRAVITY,0  }
 };
 
 
@@ -150,7 +137,7 @@ float H2[m][n]={
 ,{
     0,0,0,0  }
 ,{
-    0,0,g,0  }
+    0,0,GRAVITY,0  }
 };
 
 float H_t_1[n][m]={
@@ -159,7 +146,7 @@ float H_t_1[n][m]={
 ,{
     0,L_5,0,0,0,0  }
 ,{
-    0,0,0,0,0,g  }
+    0,0,0,0,0,GRAVITY  }
 ,{
     0,-L_5,0,0,0,0  }
 };
@@ -171,36 +158,12 @@ float H_t_2[n][m]={
 ,{
     L_6,0,0,0,0,0  }
 ,{
-    0,0,0,0,0,g  }
+    0,0,0,0,0,GRAVITY  }
 ,{
     -L_6,0,0,0,0,0  }
 };
 
-float Q[n][n]={
-{
-    1,0,0,0  }
-,{
-    0,1,0,0  }
-,{
-    0,0,1,0  }
-,{
-    0,0,0,1  }
-};
 
-float R[m][m]={
-{
-    1,0,0,0,0,0  }
-,{
-    0,1,0,0,0,0  }
-,{
-    0,0,1,0,0,0  }
-,{
-    0,0,0,1,0,0  }
-,{
-    0,0,0,0,1,0  }
-,{
-    0,0,0,0,0,1  }
-};
 
 
 
@@ -240,7 +203,7 @@ if(j == 0){
 }
 else{
         float* H = H_2;
-        float* H_k = H_t_2;
+        float* H_t = H_t_2;
     if(k == 0){
         float* X_k_1 = x_2_1;
         float* X_k = x_2_2;
@@ -272,7 +235,7 @@ Serial.println("Cov");
 // update
 // innovation or measurement residual
 math.MatrixMult((float*)H, (float*)X_k_1, m, n, 1, (float*)temp4);
-math.MatrixSubtract((float*)Z_k, (float*)temp4, m, 1, (float*)temp4);
+math.MatrixSubtract((float*)ProcessedSensorData, (float*)temp4, m, 1, (float*)temp4);
 Serial.println("Res");
 // innovation or residual covariance
 math.MatrixMult((float*)H, (float*)P_k_1, m, n, n, (float*)tempmn); 

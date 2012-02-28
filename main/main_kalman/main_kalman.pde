@@ -30,11 +30,6 @@
 #define ToRad(x) (x*PI)/180.0
 #define ToDeg(x) (x*180.0)/PI
 
-#define Kp_ROLLPITCH 0.0075 //.015 Pitch&Roll Proportional Gain
-#define Ki_ROLLPITCH 0.000010 //0.000005Pitch&Roll Integrator Gain
-#define Kp_YAW .25 //.5Yaw Porportional Gain  
-#define Ki_YAW 0.0005 //0.0005Yaw Integrator Gain
-
 /* Matrix sizes */
 #define n 4 //state size
 #define p 1 //input size
@@ -48,7 +43,7 @@
 #define OMEGAA 1 //If value = 1 will print the corrected data, 0 will print uncorrected data of the gyros (with drift)
 #define PRINT_DCM 0 //Will print the whole direction cosine matrix
 #define PRINT_ANALOGS 0 // If 1 will print the analog raw data
-#define PRINT_EULER 1 //Will print the Euler angles Roll, Pitch and Yaw
+#define PRINT_EULER 0 //Will print the Euler angles Roll, Pitch and Yaw
 #define PRINT_GPS 0
 
 // PID thingers
@@ -60,15 +55,90 @@
 #define MOTOR_CCW_LOW MOTOR_CCW_HIGH-MOTOR_RANGE
 
 // PID Gains
-//#define ki 0.0
-//#define kd 2.5
-//#define kp 1.5
 #define setpoint 0
 
 Servo Motor1;
 Servo Motor2;
 
-void Actuate(void);
+
+//state variables
+float x_1_1[n] = {0.0, 0.0, 0.0, 0.0};
+float x_2_1[n] = {0.0, 0.0, 0.0, 0.0};
+float x_1_2[n] = {0.0, 0.0, 0.0, 0.0};
+float x_2_2[n] = {0.0, 0.0, 0.0, 0.0};
+
+/* THINGS TO TUNE!!!!!! */
+
+//filter tuning parameters.  these tell us the 
+//state model.  we can calculate them approximately 
+//by measuring things 
+//but I think we can just guess stuff until it works decent
+//if you would like to calculate them, look at the 
+//pieces of paper in the lab cabinet as before, they define 
+//all of these in terms of physical quantities
+//except L_5 and L_6, which are totally dependent on the 
+//sensors and we make no attempt to calculate them
+float L_1 = 1.0, L_2 = 1.0, L_3 = 1.0, L_4 = 1.0;
+float L_5 = 1.0, L_6 = 1.0;
+
+//control parameters
+//these tell us how hard we will push depending on 
+//the four state variables.  the control effort 
+//for each motor axis is determined by the dot product 
+//of this vector with the error away from:
+//0 movement away from starting position
+//speed that we are moving away from the starting position
+//error from the vertical axis 
+//speed moving away from the vertical axis
+//respectively with k_1 ... k_4
+float k_1 = 1.0, k_2 = 1.0, k_3 = 1.0, k_4 = 1.0;
+float[4] kvector = {k_1, k_2, k_3, k_4};
+
+//noise covariances
+//these tell us how much we trust various things in our filter 
+//and the filter uses these values to weight the estimate of the 
+//state.
+//the Q matrix is how much noise we think there is in our 
+//inverted pendulum system dynamics.  there should be a lot 
+//since our model of the dynamics is fairly loose
+//the R matrix is how much emphasis we put on the various 
+//sensor measurements.  the first three are the 
+//gyro x y z and then last three are the accelerometer 
+//x y z respectively.  
+//
+//NOTE: lower values here mean we trust that part more
+//and thus we will weight that part to predict the state higher
+//these matrices should be diagonal since we do not assume that the 
+//errors are dependent on each other.
+float Q[n][n]={
+{
+    1,0,0,0  }
+,{
+    0,1,0,0  }
+,{
+    0,0,1,0  }
+,{
+    0,0,0,1  }
+};
+
+float R[m][m]={
+{
+    .5,0,0,0,0,0  }
+,{
+    0,.5,0,0,0,0  }
+,{
+    0,0,.5,0,0,0  }
+,{
+    0,0,0,1,0,0  }
+,{
+    0,0,0,0,1,0  }
+,{
+    0,0,0,0,0,1  }
+};
+
+
+/* END OF THINGS TO TUNE */
+
 void MotorTest(void);
 
 #define joints 2            //joints refers to number of actuators
@@ -82,12 +152,11 @@ unsigned short int j;
 unsigned short int k;
 
 // Motor Directions
-//signed short int dir[2];
-float dangle[2];
-// PID variables for each Motor
-float P[joints], I[joints], D[joints];
-float err[joints][error_readings], out[joints], sum[joints];
 unsigned int max_output = 200;
+signed short int dir = 0.0;
+
+// Control effort
+float u = 0.0;
 
 
 // loop counter
@@ -97,6 +166,7 @@ int loopcount = 0;
 float SENSOR_SIGN[]={1,-1,1,1,-1,1}; //{1,1,-1,1,-1,1}Used to change the polarity of the sensors{-1,1,-1,-1,-1,1}
 int SensorData[6]; //array that store the 6 ADC filtered data
 int SensorData_Offset[6]; //Array that stores the Offset of the gyros
+int ProcessedSensorData[6]; //array that store the 6 ADC filtered data after being offset by SIGN and Offset
 
 float printtime;
 float motortime[2];
@@ -105,6 +175,7 @@ int read6, read7, read8, read9;
 
 int long timer_read = 0;
 int long timer=0; //general purpose timer 
+int long timedifference=0; //used for kalman filtering
 int long timer24=0; //Second timer used to print values 
 int EX[6]; //General purpose array to send information
 
@@ -133,10 +204,6 @@ float speed_3d=0; //Speed (3-D)  (not used)
 volatile uint8_t MuxSel=0;
 //volatile uint8_t analog_reference = DEFAULT;
 volatile int16_t analog_buffer[8];
-
-
-
-
 
 void test(float value[9],int pos)
 {
@@ -175,31 +242,27 @@ void setup()
 
 void loop() //Main Loop
 {
-  roll=(ToDeg(atan2(DCM_Matrix[2][1],DCM_Matrix[2][2])));
-  pitch=(ToDeg(asin(DCM_Matrix[2][0])));
-  yaw=(ToDeg(atan2(DCM_Matrix[1][0],DCM_Matrix[0][0])));
-  
-  // print raw gyro data
-  dangle[0]=-read_adc(0);
-  dangle[1]=-read_adc(1);
-  
-  if((millis()-timer)>=5)
+  timedifference = millis() - timer;
+  if(timedifference>=5)
   {
-    timer=millis();
+    timer=timer + timedifference;
     read_adc_raw(); //ADC Stuff
-    //Matrix_update();
-    //Normalize();
-    //roll_pitch_drift();
-    //printdata();
+    read_adc_offset();
+    // actuate y-axis
+    j = 0;
+    KalmanFilter();
+    StateSpaceControl();
+    Actuate();
+    
+    // actuate x-axis
+    j = 1;
+    KalmanFilter();
+    StateSpaceControl();
+    Actuate();
+
+    //update which state stores the current state/covariance
+    k = (k + 1) % 2;
   }
-  /*
-  if(millis()-printtime>500){
-    printtime = millis();
-    Serial.print(dangle[0]);
-    Serial.print(dangle[1]);
-    printdata(); //Send info via serial
-  }
-  */
   
 //out = out^2;
 /*  if ((millis() - timer_read) >= 1000) {
@@ -232,33 +295,19 @@ void loop() //Main Loop
 }*/
  
 
-  // actuate y-axis
-  j = 0;
-  KalmanFilter();
-  StateSpaceControl();
-  Actuate();
-  
-  // actuate x-axis
-  j = 1;
-  KalmanFilter();
-  StateSpaceControl();
-  Actuate();
-
-  //update which state stores the current state/covariance
-  k = (k + 1) % 2;
 }
 
 
 void printgains(void) {
  
   Serial.print("kp = ");
-  Serial.print( kp );
+  //Serial.print( kp );
   Serial.print("   Kd = ");
-  Serial.print(kd);
+  //Serial.print(kd);
   Serial.print("   out = ");
-  Serial.print(out[0]);
+  //Serial.print(out[0]);
   Serial.print("   out = ");
-  Serial.println(out[1]);
+  //Serial.println(out[1]);
   
   /*
    Serial.print("6 = ");
