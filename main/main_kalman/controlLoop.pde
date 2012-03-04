@@ -3,18 +3,18 @@ void StateSpaceControl()
     //multiply the k vector with the x vector to find control effort
     if(j == 0){
         if(k == 0){
-            math.MatrixMult((float*)x_1_2, (float*)kvector, 1, n, 1, (float*)u); 
+            math.MatrixMult((float*)x_1_2, (float*)kvector, 1, n, 1, (float*)&u); 
         }
         else{
-            math.MatrixMult((float*)x_1_1, (float*)kvector, 1, n, 1, (float*)u); 
+            math.MatrixMult((float*)x_1_1, (float*)kvector, 1, n, 1, (float*)&u); 
         }
     }
     else{
         if(k == 0){
-            math.MatrixMult((float*)x_2_2, (float*)kvector, 1, n, 1, (float*)u); 
+            math.MatrixMult((float*)x_2_2, (float*)kvector, 1, n, 1, (float*)&u); 
         }
         else{
-            math.MatrixMult((float*)x_2_1, (float*)kvector, 1, n, 1, (float*)u); 
+            math.MatrixMult((float*)x_2_1, (float*)kvector, 1, n, 1, (float*)&u); 
         }
     }
   
@@ -49,8 +49,8 @@ void Actuate(void) {
       
       Motor1.write(u);	
     }	
-    if(millis()-motortime[j]>250){
-      Serial.println(out[j]); 
+    if((millis() - motortime[j])>250){
+      Serial.println(max_output[j]); 
       motortime[j]=millis();
     }
   }
@@ -69,7 +69,7 @@ void Actuate(void) {
       Motor2.write(u);
     }
     if(millis()-motortime[j]>250){
-      Serial.println(out[j]); 
+      Serial.println(max_output[j]); 
       motortime[j]=millis();
     }	 	
   }	

@@ -1,5 +1,5 @@
 /*
- * old signature
+  old signature
                   float* F, // n*n
                   float* F_t, // t
                   float* B, // n*p
@@ -36,7 +36,7 @@ float P_1_1[n][n]={
 ,{
     0,1,0,0  }
 ,{
-    0,0,1,0  }*
+    0,0,1,0  }
 ,{
     0,0,0,1  }
 };
@@ -109,7 +109,7 @@ float B[n][p]={
     L_4  }
 };
 
-float H1[m][n]={
+float H_1[m][n]={
 {
     0,0,0,0  }
 ,{
@@ -125,7 +125,7 @@ float H1[m][n]={
 };
 
 
-float H2[m][n]={
+float H_2[m][n]={
 {
     0,L_6,0,-L_6  }
 ,{
@@ -184,40 +184,42 @@ float tempnm2 [n][m];
 float tempm [m][m];
 float tempm2 [m][m];
 
-if(j == 0){
-        float* H = H_1;
-        float* H_t = H_t_1;
+if(j == 0)
+{
+        float* H = &H_1[0][0];
+        float* H_t = &H_t_1[0][0];
     if(k == 0){
-        float* X_k_1 = x_1_1;
-        float* X_k = x_1_2;
-        float* P_k_l = P_1_1;
-        float* P_k = P_1_2;
+        float* X_k_1 = &x_1_1[0];
+        float* X_k = &x_1_2[0];
+        float* P_k_l = &P_1_1[0][0];
+        float* P_k = &P_1_2[0][0];
     }
     else
     {
-        float* X_k_1 = x_1_2;
-        float* X_k = x_1_1;
-        float* P_k_l = P_1_2;
-        float* P_k = P_1_1;
+        float* X_k_1 = &x_1_2[0];
+        float* X_k = &x_1_1[0];
+        float* P_k_l = &P_1_2[0][0];
+        float* P_k = &P_1_1[0][0];
     }
 }
-else{
-        float* H = H_2;
-        float* H_t = H_t_2;
+else
+{
+        float* H = &H_2[0][0];
+        float* H_t = &H_t_2[0][0];
     if(k == 0){
-        float* X_k_1 = x_2_1;
-        float* X_k = x_2_2;
-        float* P_k_l = P_2_1;
-        float* P_k = P_2_2;
+        float* X_k_1 = &x_2_1[0];
+        float* X_k = &x_2_2[0];
+        float* P_k_l = &P_2_1[0][0];
+        float* P_k = &P_2_2[0][0];
     }
     else
     {
-        float* X_k_1 = x_2_2;
-        float* X_k = x_2_1;
-        float* P_k_l = P_2_2;
-        float* P_k = P_2_1;
+        float* X_k_1 = &x_2_2[0];
+        float* X_k = &x_2_1[0];
+        float* P_k_l = &P_2_2[0][0];
+        float* P_k = &P_2_1[0][0];
     }
-    }
+}
     
 Serial.println("Beginning");
 // predict

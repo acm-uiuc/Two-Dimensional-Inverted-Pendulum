@@ -19,6 +19,8 @@
 // UIUC Association for Computing Machinery (ACM) Special Interest Group for Robotics (SIGBOT), 2010-2012
 
 #include <Servo.h> 
+#include <MatrixMath.h>
+MatrixMath math;
 
 #define GRAVITY 101 //this equivalent to 1G in the raw data coming from the accelerometer 
 #define Accel_Scale(x) x*(GRAVITY/9.81)//Scaling the raw data of the accel to actual acceleration in meters for seconds square
@@ -40,7 +42,7 @@
 #define SPEEDFILT 1 //1=use min speed filter for yaw drift cancellation, 0=do not use
 
 /*For debugging propurses*/
-#define OMEGAA 1 //If value = 1 will print the corrected data, 0 will print uncorrected data of the gyros (with drift)
+#define OMEGAA 1 //If value = 1 will print the corrected data, 0 will print uncorrected data of the gyros (witfdrift)
 #define PRINT_DCM 0 //Will print the whole direction cosine matrix
 #define PRINT_ANALOGS 0 // If 1 will print the analog raw data
 #define PRINT_EULER 0 //Will print the Euler angles Roll, Pitch and Yaw
@@ -62,10 +64,10 @@ Servo Motor2;
 
 
 //state variables
-float x_1_1[n] = {0.0, 0.0, 0.0, 0.0};
-float x_2_1[n] = {0.0, 0.0, 0.0, 0.0};
-float x_1_2[n] = {0.0, 0.0, 0.0, 0.0};
-float x_2_2[n] = {0.0, 0.0, 0.0, 0.0};
+float x_1_1[n] = {0, 0, 0, 0};
+float x_2_1[n] = {0, 0, 0, 0};
+float x_1_2[n] = {0, 0, 0, 0};
+float x_2_2[n] = {0, 0, 0, 0};
 
 /* THINGS TO TUNE!!!!!! */
 
@@ -91,9 +93,8 @@ float L_5 = 1.0, L_6 = 1.0;
 //error from the vertical axis 
 //speed moving away from the vertical axis
 //respectively with k_1 ... k_4
-float k_1 = 1.0, k_2 = 1.0, k_3 = 1.0, k_4 = 1.0;
-float[4] kvector = {k_1, k_2, k_3, k_4};
-
+float kvector[4]={1,1,1,1};
+float k_1 = kvector[0], k_2 = kvector[1], k_3 = kvector[2], k_4 = kvector[3];
 //noise covariances
 //these tell us how much we trust various things in our filter 
 //and the filter uses these values to weight the estimate of the 
@@ -137,6 +138,7 @@ float R[m][m]={
 };
 
 
+
 /* END OF THINGS TO TUNE */
 
 void MotorTest(void);
@@ -153,10 +155,10 @@ unsigned short int k;
 
 // Motor Directions
 unsigned int max_output = 200;
-signed short int dir = 0.0;
+signed short int dir = 0;
 
 // Control effort
-float u = 0.0;
+float u = 0;
 
 
 // loop counter
