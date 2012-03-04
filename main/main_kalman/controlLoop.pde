@@ -50,7 +50,7 @@ void Actuate(void) {
       Motor1.write(u);	
     }	
     if((millis() - motortime[j])>250){
-      Serial.println(max_output[j]); 
+      Serial.println(max_output); 
       motortime[j]=millis();
     }
   }
@@ -69,7 +69,7 @@ void Actuate(void) {
       Motor2.write(u);
     }
     if(millis()-motortime[j]>250){
-      Serial.println(max_output[j]); 
+      Serial.println(max_output); 
       motortime[j]=millis();
     }	 	
   }	

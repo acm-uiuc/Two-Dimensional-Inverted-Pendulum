@@ -184,40 +184,47 @@ float tempnm2 [n][m];
 float tempm [m][m];
 float tempm2 [m][m];
 
+float* X_k_1;
+float* X_k;
+float* P_k_l;
+float* P_k;
+float* H;
+float* H_t;
+
 if(j == 0)
 {
-        float* H = &H_1[0][0];
-        float* H_t = &H_t_1[0][0];
+        H = &H_1[0][0];
+        H_t = &H_t_1[0][0];
     if(k == 0){
-        float* X_k_1 = &x_1_1[0];
-        float* X_k = &x_1_2[0];
-        float* P_k_l = &P_1_1[0][0];
-        float* P_k = &P_1_2[0][0];
+        X_k_1 = &x_1_1[0];
+        X_k = &x_1_2[0];
+        P_k_l = &P_1_1[0][0];
+        P_k = &P_1_2[0][0];
     }
     else
     {
-        float* X_k_1 = &x_1_2[0];
-        float* X_k = &x_1_1[0];
-        float* P_k_l = &P_1_2[0][0];
-        float* P_k = &P_1_1[0][0];
+        X_k_1 = &x_1_2[0];
+        X_k = &x_1_1[0];
+        P_k_l = &P_1_2[0][0];
+        P_k = &P_1_1[0][0];
     }
 }
 else
 {
-        float* H = &H_2[0][0];
-        float* H_t = &H_t_2[0][0];
+        H = &H_2[0][0];
+        H_t = &H_t_2[0][0];
     if(k == 0){
-        float* X_k_1 = &x_2_1[0];
-        float* X_k = &x_2_2[0];
-        float* P_k_l = &P_2_1[0][0];
-        float* P_k = &P_2_2[0][0];
+        X_k_1 = &x_2_1[0];
+        X_k = &x_2_2[0];
+        P_k_l = &P_2_1[0][0];
+        P_k = &P_2_2[0][0];
     }
     else
     {
-        float* X_k_1 = &x_2_2[0];
-        float* X_k = &x_2_1[0];
-        float* P_k_l = &P_2_2[0][0];
-        float* P_k = &P_2_1[0][0];
+        X_k_1 = &x_2_2[0];
+        X_k = &x_2_1[0];
+        P_k_l = &P_2_2[0][0];
+        P_k = &P_2_1[0][0];
     }
 }
     
