@@ -228,28 +228,28 @@ else
     }
 }
     
-Serial.println("Beginning");
+//Serial.println("Beginning");
 // predict
 // predicted state estimate
 math.MatrixMult((float*)F, (float*)X_k_1, n, n, 1, (float*)temp1);
 //math.MatrixMult((float*)B, (float*)u, n, p, 1, (float*)X_k_1);
 math.MatrixCopy((float*)temp1, n, 1, (float*)X_k_1);
 //math.MatrixAdd((float*)temp1, (float*)X_k_1, n, 1, (float*)X_k_1);
-Serial.println("Estimate");
+//Serial.println("Estimate");
 // predicted estimate covariance
 math.MatrixMult((float*)F, (float*)P_k_1, n, n, n, (float*)temp2);
 math.MatrixMult((float*)temp2, (float*)F_t, n, n, n, (float*)temp3);
 math.MatrixAdd((float*)temp3, (float*)Q, n, n, (float*)P_k_1);
-Serial.println("Cov");
+//Serial.println("Cov");
 // update
 // innovation or measurement residual
 math.MatrixMult((float*)H, (float*)X_k_1, m, n, 1, (float*)temp4);
 math.MatrixSubtract((float*)ProcessedSensorData, (float*)temp4, m, 1, (float*)temp4);
-Serial.println("Res");
+//Serial.println("Res");
 // innovation or residual covariance
 math.MatrixMult((float*)H, (float*)P_k_1, m, n, n, (float*)tempmn); 
 
-Serial.println("ResCov");
+//Serial.println("ResCov");
 math.MatrixMult((float*)H_t, (float*)tempnm, m, n, m, (float*)tempm);
 math.MatrixAdd((float*)tempm, (float*)R, m, m, (float*)tempm);
 
@@ -257,11 +257,11 @@ math.MatrixAdd((float*)tempm, (float*)R, m, m, (float*)tempm);
 math.MatrixInvert((float*)tempm, m);
 math.MatrixMult((float*)P_k_1, (float*)tempnm, n, n, m, (float*)tempnm2);
 math.MatrixMult((float*)tempnm2, (float*)tempm2, n, m, m, (float*)tempnm);
-Serial.println("KGain");
+//Serial.println("KGain");
 // updated state estimate
 math.MatrixMult((float*)tempnm, (float*)temp2, m, m, 1, (float*)X_k);
 math.MatrixAdd((float*)X_k, (float*)X_k_1, m, 1, (float*)X_k);
-Serial.println("State");
+//Serial.println("State");
 //updated estimate covarience
 math.MatrixMult((float*)tempnm, (float*)H, n, m, n, (float*)temp1);
 
@@ -276,5 +276,5 @@ int i, j;
   }
   
 math.MatrixMult((float*)temp1, (float*)P_k_1, n, n, n, (float*)P_k);
-Serial.println("Ending");
+//Serial.println("Ending");
 }

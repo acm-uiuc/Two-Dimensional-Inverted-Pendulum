@@ -209,7 +209,7 @@ volatile int16_t analog_buffer[8];
 
 void test(float value[9],int pos)
 {
-  Serial.print(convert_to_dec(value[pos]));
+  //Serial.print(convert_to_dec(value[pos]));
 }
 
 void setup()
@@ -226,7 +226,7 @@ void setup()
   for(int y=0; y<=5; y++)
   {
     SensorData_Offset[y]=SensorData[y];
-    Serial.println((int)SensorData_Offset[y]);
+    //Serial.println((int)SensorData_Offset[y]);
   }
     SensorData_Offset[5]=SensorData[5]+GRAVITY;
     printtime = millis();
@@ -247,7 +247,7 @@ void loop() //Main Loop
   timedifference = millis() - timer;
   if(timedifference>=5)
   {
-    timer=timer + timedifference;
+    timer = timer + timedifference;
     read_adc_raw(); //ADC Stuff
     read_adc_offset();
     // actuate y-axis
@@ -261,6 +261,11 @@ void loop() //Main Loop
     KalmanFilter();
     StateSpaceControl();
     Actuate();
+
+
+
+    //print out the angle/vel of both axis
+    printstate();
 
     //update which state stores the current state/covariance
     k = (k + 1) % 2;
@@ -300,24 +305,43 @@ void loop() //Main Loop
 }
 
 
+void printstate(void)
+{
+
+
+    if(k == 0){
+        Serial.println("%f.3, %f.3", x_1_2[2], x_1_2[3]);
+    }
+    else{
+        Serial.println("%f.3, %f.3", x_1_1[2], x_1_1[3]);
+    }
+    if(k == 0){
+        Serial.println("%f.3, %f.3", x_2_2[2], x_2_2[3]);
+    }
+    else{
+        Serial.println("%f.3, %f.3", x_2_1[2], x_2_1[3]);
+    }
+}
+
+
 void printgains(void) {
  
-  Serial.print("kp = ");
-  //Serial.print( kp );
-  Serial.print("   Kd = ");
-  //Serial.print(kd);
-  Serial.print("   out = ");
-  //Serial.print(out[0]);
-  Serial.print("   out = ");
-  //Serial.println(out[1]);
+  //Serial.print("kp = ");
+  ////Serial.print( kp );
+  //Serial.print("   Kd = ");
+  ////Serial.print(kd);
+  //Serial.print("   out = ");
+  ////Serial.print(out[0]);
+  //Serial.print("   out = ");
+  ////Serial.println(out[1]);
   
   /*
-   Serial.print("6 = ");
-  Serial.print( read6 );
-  Serial.print("   Kd = ");
-  Serial.print(read7);
-  Serial.print("   Ki = ");
-  Serial.println(read8);
+   //Serial.print("6 = ");
+  //Serial.print( read6 );
+  //Serial.print("   Kd = ");
+  //Serial.print(read7);
+  //Serial.print("   Ki = ");
+  //Serial.println(read8);
   */
   
 }
