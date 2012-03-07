@@ -137,9 +137,11 @@ float R[m][m]={
     0,0,0,0,0,1  }
 };
 
-
-
 /* END OF THINGS TO TUNE */
+
+
+
+
 
 void MotorTest(void);
 
@@ -150,8 +152,8 @@ void MotorTest(void);
 // j = 1 -> Motor 2
 // k = 0 -> suffix _2 is the previous state for states
 // k = 1 -> suffix _1 is the previous state for states
-unsigned short int j;
-unsigned short int k;
+unsigned short int j = 0;
+unsigned short int k = 0;
 
 // Motor Directions
 unsigned int max_output = 200;
@@ -211,6 +213,34 @@ void test(float value[9],int pos)
 {
   //Serial.print(convert_to_dec(value[pos]));
 }
+void printstate(void)
+{
+    if(k == 0){
+        Serial.print(x_1_2[2], 4);
+        Serial.print(" ");
+        Serial.print(x_1_2[3], 4);
+        Serial.print(" ");
+    }
+    else{
+        Serial.print(x_1_1[2], 4);
+        Serial.print(" ");
+        Serial.print(x_1_1[3], 4);
+        Serial.print(" ");
+    }
+    if(k == 0){
+        Serial.print(x_2_2[2], 4);
+        Serial.print(" ");
+        Serial.println(x_2_2[3], 4);
+    }
+    else{
+        Serial.print(x_2_1[2], 4);
+        Serial.print(" ");
+        Serial.println(x_2_1[3], 4);
+    }
+}
+
+
+
 
 void setup()
 {
@@ -252,21 +282,50 @@ void loop() //Main Loop
     read_adc_offset();
     // actuate y-axis
     j = 0;
+    Serial.println("out of 0");
     KalmanFilter();
+    Serial.println("out of 1");
     StateSpaceControl();
+    Serial.println("out of 2");
     Actuate();
+    
+    Serial.println("out of 3");
     
     // actuate x-axis
     j = 1;
     KalmanFilter();
+    Serial.println("out of 4");
     StateSpaceControl();
+    Serial.println("out of 5");
     Actuate();
+    Serial.println("out of 6");
 
 
 
     //print out the angle/vel of both axis
-    printstate();
-
+    /*if(k == 1000){
+      Serial.print("11111");
+        Serial.print(x_1_2[2], 4);
+        Serial.print(" ");
+        Serial.print(x_1_2[3], 4);
+        Serial.print(" ");
+    }
+    else{
+        Serial.print(x_1_1[2], 4);
+        Serial.print(" ");
+        Serial.print(x_1_1[3], 4);
+        Serial.print(" ");
+    }
+    if(k == 0){
+        Serial.print(x_2_2[2], 4);
+        Serial.print(" ");
+        Serial.println(x_2_2[3], 4);
+    }
+    else{
+        Serial.print(x_2_1[2], 4);
+        Serial.print(" ");
+        Serial.println(x_2_1[3], 4);
+    }*/
     //update which state stores the current state/covariance
     k = (k + 1) % 2;
   }
@@ -305,31 +364,7 @@ void loop() //Main Loop
 }
 
 
-void printstate(void)
-{
-    if(k == 0){
-        Serial.print(x_1_2[2], 4);
-        Serial.print(" ");
-        Serial.print(x_1_2[3], 4);
-        Serial.print(" ");
-    }
-    else{
-        Serial.print(x_1_1[2], 4);
-        Serial.print(" ");
-        Serial.print(x_1_1[3], 4);
-        Serial.print(" ");
-    }
-    if(k == 0){
-        Serial.print(x_2_2[2], 4);
-        Serial.print(" ");
-        Serial.println(x_2_2[3], 4);
-    }
-    else{
-        Serial.print(x_2_1[2], 4);
-        Serial.print(" ");
-        Serial.println(x_2_1[3], 4);
-    }
-}
+
 
 
 void printgains(void) {

@@ -249,7 +249,7 @@ math.MatrixSubtract((float*)ProcessedSensorData, (float*)temp4, m, 1, (float*)te
 // innovation or residual covariance
 math.MatrixMult((float*)H, (float*)P_k_1, m, n, n, (float*)tempmn); 
 
-//Serial.println("ResCov");
+Serial.println("ResCov");
 math.MatrixMult((float*)H_t, (float*)tempnm, m, n, m, (float*)tempm);
 math.MatrixAdd((float*)tempm, (float*)R, m, m, (float*)tempm);
 
@@ -257,24 +257,24 @@ math.MatrixAdd((float*)tempm, (float*)R, m, m, (float*)tempm);
 math.MatrixInvert((float*)tempm, m);
 math.MatrixMult((float*)P_k_1, (float*)tempnm, n, n, m, (float*)tempnm2);
 math.MatrixMult((float*)tempnm2, (float*)tempm2, n, m, m, (float*)tempnm);
-//Serial.println("KGain");
+Serial.println("KGain");
 // updated state estimate
-math.MatrixMult((float*)tempnm, (float*)temp2, m, m, 1, (float*)X_k);
-math.MatrixAdd((float*)X_k, (float*)X_k_1, m, 1, (float*)X_k);
-//Serial.println("State");
+math.MatrixMult((float*)tempnm, (float*)temp4, n, m, 1, (float*)X_k);
+math.MatrixAdd((float*)X_k, (float*)X_k_1, n, 1, (float*)X_k);
+Serial.println("State");
 //updated estimate covarience
-math.MatrixMult((float*)tempnm, (float*)H, n, m, n, (float*)temp1);
+math.MatrixMult((float*)tempnm, (float*)H, n, m, n, (float*)temp2);
 
 int i, j;
   for(i = 0; i < n; i++){
     for(j = 0; j < n; j++){
-      temp1[i][j] = -temp1[i][j];
+      temp2[i][j] = -temp2[i][j];
     }
   }
   for(i = 0; i < n; i++){
-    temp1[i][i] +=1;
+    temp2[i][i] +=1;
   }
   
-math.MatrixMult((float*)temp1, (float*)P_k_1, n, n, n, (float*)P_k);
-//Serial.println("Ending");
+math.MatrixMult((float*)temp2, (float*)P_k_1, n, n, n, (float*)P_k);
+Serial.println("Ending");
 }
