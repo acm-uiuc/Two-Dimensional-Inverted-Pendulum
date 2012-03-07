@@ -307,19 +307,27 @@ void loop() //Main Loop
 
 void printstate(void)
 {
-
-
     if(k == 0){
-        Serial.println("%f.3, %f.3", x_1_2[2], x_1_2[3]);
+        Serial.print(x_1_2[2], 4);
+        Serial.print(" ");
+        Serial.print(x_1_2[3], 4);
+        Serial.print(" ");
     }
     else{
-        Serial.println("%f.3, %f.3", x_1_1[2], x_1_1[3]);
+        Serial.print(x_1_1[2], 4);
+        Serial.print(" ");
+        Serial.print(x_1_1[3], 4);
+        Serial.print(" ");
     }
     if(k == 0){
-        Serial.println("%f.3, %f.3", x_2_2[2], x_2_2[3]);
+        Serial.print(x_2_2[2], 4);
+        Serial.print(" ");
+        Serial.println(x_2_2[3], 4);
     }
     else{
-        Serial.println("%f.3, %f.3", x_2_1[2], x_2_1[3]);
+        Serial.print(x_2_1[2], 4);
+        Serial.print(" ");
+        Serial.println(x_2_1[3], 4);
     }
 }
 
