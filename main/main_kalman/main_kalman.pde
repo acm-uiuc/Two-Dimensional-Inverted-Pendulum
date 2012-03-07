@@ -244,7 +244,7 @@ void printstate(void)
 
 void setup()
 {
-  Serial.begin(38400);
+  Serial.begin(19200);
   
   analogReference(EXTERNAL);//Using external analog reference
   
@@ -275,34 +275,36 @@ void setup()
 void loop() //Main Loop
 {
   timedifference = millis() - timer;
-  if(timedifference>=5)
-  {
+  //if(timedifference>=5)
+  //{
     timer = timer + timedifference;
     read_adc_raw(); //ADC Stuff
     read_adc_offset();
     // actuate y-axis
     j = 0;
-    Serial.println("out of 0");
+    //Serial.println("out of 0");
     KalmanFilter();
-    Serial.println("out of 1");
+    //Serial.println("out of 1");
     StateSpaceControl();
-    Serial.println("out of 2");
+    //Serial.println("out of 2");
     Actuate();
     
-    Serial.println("out of 3");
+    //Serial.println("out of 3");
     
     // actuate x-axis
     j = 1;
     KalmanFilter();
-    Serial.println("out of 4");
+    //Serial.println("out of 4");
     StateSpaceControl();
-    Serial.println("out of 5");
+    //Serial.println("out of 5");
     Actuate();
-    Serial.println("out of 6");
+    //Serial.println("out of 6");
 
 
 
     //print out the angle/vel of both axis
+    //printstate();
+    Serial.print("11111");
     /*if(k == 1000){
       Serial.print("11111");
         Serial.print(x_1_2[2], 4);
@@ -328,7 +330,7 @@ void loop() //Main Loop
     }*/
     //update which state stores the current state/covariance
     k = (k + 1) % 2;
-  }
+  //}
   
 //out = out^2;
 /*  if ((millis() - timer_read) >= 1000) {
@@ -388,3 +390,4 @@ void printgains(void) {
   */
   
 }
+
