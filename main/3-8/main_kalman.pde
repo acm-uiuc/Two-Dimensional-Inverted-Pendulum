@@ -64,11 +64,10 @@ Servo Motor2;
 
 
 //state variables
-float x_1_1[n] = {1, 1, 1, 1};
-float x_2_1[n] = {1, 1, 1, 1};
-float x_1_2[n] = {1, 1, 1, 1};
-float x_2_2[n] = {1, 1, 1, 1};
-
+float x_1_1[n] = {0, 0, 0, 0};
+float x_2_1[n] = {0, 0, 0, 0};
+float x_1_2[n] = {0, 0, 0, 0};
+float x_2_2[n] = {0, 0, 0, 0};
 
 /* THINGS TO TUNE!!!!!! */
 
@@ -141,162 +140,7 @@ float R[m][m]={
 
 
 /* END OF THINGS TO TUNE */
-//covariance matrices
-float P_1_1[n][n]={
-{
-    1,0,0,0  }
-,{
-    0,1,0,0  }
-,{
-    0,0,1,0  }
-,{
-    0,0,0,1  }
-};
 
-float P_1_2[n][n]={
-{
-    1,0,0,0  }
-,{
-    0,1,0,0  }
-,{
-    0,0,1,0  }
-,{
-    0,0,0,1  }
-};
-
-float P_2_1[n][n]={
-{
-    1,0,0,0  }
-,{
-    0,1,0,0  }
-,{
-    0,0,1,0  }
-,{
-    0,0,0,1  }
-};
-
-float P_2_2[n][n]={
-{
-    1,0,0,0  }
-,{
-    0,1,0,0  }
-,{
-    0,0,1,0  }
-,{
-    0,0,0,1  }
-};
-
-
-//kalman filter settings
-float F[n][n]={
-{
-    0,1,0,0  }
-,{
-    L_3 * k_1,-L_3 * k_2, L_1 - L_3 * k_3, -L_3 * k_4  }
-,{
-    0,0,0,1  }
-,{
-    -L_4 * k_1, -L_4 * k_2, L_2 - L_4 * k_3, -L_4 * k_4  }
-};
-
-float F_t[n][n]={
-{
-    0,L_3 * k_1,0,-L_4 * k_1  }
-,{
-    1,-L_3 * k_2, 0,-L_4 * k_2   }
-,{
-    0,L_1 - L_3 * k_3,0,L_2 - L_4 * k_3  }
-,{
-    0, -L_3 * k_4, 1, -L_4 * k_4  }
-};
-
-float B[n][p]={
-{
-    0  }
-,{
-    L_3  }
-,{
-    0  }
-,{
-    L_4  }
-};
-
-float H_1[m][n]={
-{
-    0,0,0,0  }
-,{
-    0,L_5,0,-L_5  }
-,{
-    0,0,0,0  }
-,{
-    0,0,0,0  }
-,{
-    0,0,0,0  }
-,{
-    0,0,GRAVITY,0  }
-};
-
-
-float H_2[m][n]={
-{
-    0,L_6,0,-L_6  }
-,{
-    0,0,0,0  }
-,{
-    0,0,0,0  }
-,{
-    0,0,0,0  }
-,{
-    0,0,0,0  }
-,{
-    0,0,GRAVITY,0  }
-};
-
-float H_t_1[n][m]={
-{
-    0,0,0,0,0,0  }
-,{
-    0,L_5,0,0,0,0  }
-,{
-    0,0,0,0,0,GRAVITY  }
-,{
-    0,-L_5,0,0,0,0  }
-};
-
-
-float H_t_2[n][m]={
-{
-    0,0,0,0,0,0  }
-,{
-    L_6,0,0,0,0,0  }
-,{
-    0,0,0,0,0,GRAVITY  }
-,{
-    -L_6,0,0,0,0,0  }
-};
-
-float temp0 [n][1]={{0},{0},{0},{0}};     
-float temp1 [n][1]={{0},{0},{0},{0}};
-float temp2 [n][n]={{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0}};
-float temp3[n][n]={{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0}};
-
-float temp4[m][1]={{0},{0},{0},{0},{0},{0}};
-float temp5[m][1]={{0},{0},{0},{0},{0},{0}};
-float tempmn[m][n]={{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0}};
-float tempnm[n][m]={{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0}};
-float tempnm2 [n][m]={{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0}};
-float tempm [m][m]={{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0}};
-float tempm2 [m][m]={{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0}};
-
-float* X_k_1;
-float* X_k;
-float* P_k_1;
-float* P_k;
-float* H;
-float* H_t;
-
-
-//put
 void MotorTest(void);
 
 #define joints 2            //joints refers to number of actuators
@@ -373,10 +217,12 @@ void setup()
   Serial.begin(38400);
   
   analogReference(EXTERNAL);//Using external analog reference
+  
   for(int c=0; c<75; c++) // "warm-up ADC
   {
     read_adc_raw();
   }
+
   for(int y=0; y<=5; y++)
   {
     SensorData_Offset[y]=SensorData[y];
@@ -387,7 +233,8 @@ void setup()
     motortime[0]=millis();
     motortime[1]=millis();
     Motor1.attach(3);
-    Motor2.attach(5); 
+    Motor2.attach(5);
+    
       pinMode(6, INPUT);
    pinMode(7, INPUT);
     pinMode(8, INPUT);
@@ -405,20 +252,23 @@ void loop() //Main Loop
     read_adc_offset();
     // actuate y-axis
     j = 0;
-    
+    Serial.println("loop");
     KalmanFilter();
+    Serial.println("afterKalman");
     StateSpaceControl();
+    Serial.println("after statespaceControl");
     Actuate();
+    Serial.println("after actuate");
     
     // actuate x-axis
     j = 1;
-    Serial.print("loop");
     KalmanFilter();
     StateSpaceControl();
     Actuate();
 
     //update which state stores the current state/covariance
     k = (k + 1) % 2;
+     Serial.println("end of loop");
   }
   
 //out = out^2;
@@ -476,30 +326,3 @@ void printgains(void) {
   */
   
 }
-void printstate(void)
-{
-    if(k == 0){
-        Serial.print(x_1_2[2], 4);
-        Serial.print(" ");
-        Serial.print(x_1_2[3], 4);
-        Serial.print(" ");
-    }
-    else{
-        Serial.print(x_1_1[2], 4);
-        Serial.print(" ");
-        Serial.print(x_1_1[3], 4);
-        Serial.print(" ");
-    }
-    if(k == 0){
-        Serial.print(x_2_2[2], 4);
-        Serial.print(" ");
-        Serial.println(x_2_2[3], 4);
-    }
-    else{
-        Serial.print(x_2_1[2], 4);
-        Serial.print(" ");
-        Serial.println(x_2_1[3], 4);
-    }
-}
-
-
